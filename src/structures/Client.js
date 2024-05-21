@@ -1,3 +1,4 @@
+
 const { Client, Collection, GatewayIntentBits, Partials, ActivityType, PresenceUpdateStatus } = require('discord.js');
 const BotUtils = require('./utils');
 
@@ -6,7 +7,6 @@ module.exports = class extends Client {
         intents: [
             GatewayIntentBits.Guilds,
             GatewayIntentBits.GuildMembers,
-            GatewayIntentBits.GuildBans,
             GatewayIntentBits.GuildEmojisAndStickers,
             GatewayIntentBits.GuildIntegrations,
             GatewayIntentBits.GuildWebhooks,
@@ -30,7 +30,7 @@ module.exports = class extends Client {
             repliedUser: false,
         },
         presence: {
-            activities: [{name: process.env.STATUS, type: ActivityType[process.env.STATUS_TYPE] ?? ActivityType.Playing}],
+            activities: [{name: process.env.STATUS, type: ActivityType[process.env.STATUS_TYPE]}],
             status: PresenceUpdateStatus.Online
         },
     }) {
@@ -46,31 +46,42 @@ module.exports = class extends Client {
     }
 
     async start() {
-        await this.loadEvents();
-        await this.loadHandlers();
+        console.log("🛫 Bot iniciando...");
+
         await this.loadCommands();
+        await this.loadHandlers();
+        await this.loadEvents();
         await this.loadSlashCommands();
 
+        console.log("Intentando iniciar sesión con el token");
+
         this.login(process.env.BOT_TOKEN);
+
+        console.log(`Token check 🥇  `);
     }
 
     async loadCommands() {
         console.log(`(${process.env.PREFIX}) Cargando comandos`.yellow);
         this.commands.clear();
+        this.slashArray = [];
 
         const RUTA_ARCHIVOS = await this.utils.loadFiles("/src/comandos");
+        console.log(`Archivos encontrados: ${RUTA_ARCHIVOS}`); // Añadir un log para verificar
 
         if (RUTA_ARCHIVOS.length) {
             RUTA_ARCHIVOS.forEach((rutaArchivo) => {
                 try {
+                    console.log(`Cargando archivo: ${rutaArchivo}`);
                     const COMANDO = require(rutaArchivo);
-                    const NOMBRE_COMANDO = rutaArchivo.split(/[/\\]/).pop().split(".")[0];
+                    const NOMBRE_COMANDO = rutaArchivo.split("\\").pop().split("/").pop().split(".")[0];
+
                     COMANDO.NAME = NOMBRE_COMANDO;
 
                     if (NOMBRE_COMANDO) this.commands.set(NOMBRE_COMANDO, COMANDO);
                 } catch (e) {
-                    console.log(`ERROR AL CARGAR EL COMANDO ${rutaArchivo}`.bgRed);
-                    console.log(e);
+                    console.error(`ERROR AL CARGAR EL COMANDO ${rutaArchivo}`.bgRed);
+                    console.error(e);
+                    console.error(`Error stack: ${e.stack}`); // Añadir la pila de errores para más detalles
                 }
             });
         }
@@ -83,21 +94,23 @@ module.exports = class extends Client {
         this.slashCommands.clear();
         this.slashArray = [];
 
-        const RUTA_ARCHIVOS = await this.utils.loadFiles("/src/slashCommands");
+        const RUTA_ARCHIVOS = await this.utils.loadFiles("/src/slashComands");
 
         if (RUTA_ARCHIVOS.length) {
             RUTA_ARCHIVOS.forEach((rutaArchivo) => {
                 try {
+                    console.log(`Cargando archivo: ${rutaArchivo}`);
                     const COMANDO = require(rutaArchivo);
-                    const NOMBRE_COMANDO = rutaArchivo.split(/[/\\]/).pop().split(".")[0];
+                    const NOMBRE_COMANDO = rutaArchivo.split("\\").pop().split("/").pop().split(".")[0];
                     COMANDO.CMD.name = NOMBRE_COMANDO;
 
                     if (NOMBRE_COMANDO) this.slashCommands.set(NOMBRE_COMANDO, COMANDO);
 
                     this.slashArray.push(COMANDO.CMD.toJSON());
                 } catch (e) {
-                    console.log(`(/) ERROR AL CARGAR EL COMANDO ${rutaArchivo}`.bgRed);
-                    console.log(e);
+                    console.error(`ERROR AL CARGAR EL archivo ${rutaArchivo}`.bgRed);
+                    console.error(e);
+                    console.error(`Error stack: ${e.stack}`); // Añadir la pila de errores para más detalles
                 }
             });
         }
@@ -118,11 +131,12 @@ module.exports = class extends Client {
         if (RUTA_ARCHIVOS.length) {
             RUTA_ARCHIVOS.forEach((rutaArchivo) => {
                 try {
+                    console.log(`Cargando handler: ${rutaArchivo}`);
                     require(rutaArchivo)(this);
-                    
                 } catch (e) {
-                    console.log(`ERROR AL CARGAR EL HANDLER ${rutaArchivo}`.bgRed);
-                    console.log(e);
+                    console.error(`ERROR AL CARGAR EL HANDLER ${rutaArchivo}`.bgRed);
+                    console.error(e);
+                    console.error(`Error stack: ${e.stack}`); // Añadir la pila de errores para más detalles
                 }
             });
         }
@@ -132,19 +146,21 @@ module.exports = class extends Client {
 
     async loadEvents() {
         console.log(`(+) Cargando eventos`.yellow);
+        this.removeAllListeners();
 
         const RUTA_ARCHIVOS = await this.utils.loadFiles("/src/eventos");
-        this.removeAllListeners();
 
         if (RUTA_ARCHIVOS.length) {
             RUTA_ARCHIVOS.forEach((rutaArchivo) => {
                 try {
+                    console.log(`Cargando evento: ${rutaArchivo}`);
                     const EVENTO = require(rutaArchivo);
-                    const NOMBRE_EVENTO = rutaArchivo.split(/[/\\]/).pop().split(".")[0];
+                    const NOMBRE_EVENTO = rutaArchivo.split("\\").pop().split("/").pop().split(".")[0];
                     this.on(NOMBRE_EVENTO, EVENTO.bind(null, this));
                 } catch (e) {
-                    console.log(`ERROR AL CARGAR EL EVENTO ${rutaArchivo}`.bgRed);
-                    console.log(e);
+                    console.error(`ERROR AL CARGAR EL EVENTO ${rutaArchivo}`.bgRed);
+                    console.error(e);
+                    console.error(`Error stack: ${e.stack}`); // Añadir la pila de errores para más detalles
                 }
             });
         }

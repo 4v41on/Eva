@@ -1,6 +1,5 @@
-const { glob } = require('glob');
-const { promisify } = require('util');
-const proGlob = promisify(glob);
+const fs = require('fs');
+const path = require('path');
 
 module.exports = class BotUtils {
     constructor(client) {
@@ -8,10 +7,25 @@ module.exports = class BotUtils {
     }
 
     async loadFiles(dirName) {
-        const ARCHIVOS = await proGlob(`${process.cwd().replace(/\\/g, "/")}/${dirName}/**/*.js`);
-        ARCHIVOS.forEach((ARCHIVO) => {
-            delete require.cache[require.resolve(ARCHIVO)];
-        });
-        return ARCHIVOS;
+        const dirPath = path.join(process.cwd(), dirName);
+        console.log(`📦 Cargando archivos de: ${dirName}`);
+        console.log(`Directorio completo: ${dirPath}`);
+        
+        try {
+            const files = await fs.promises.readdir(dirPath);
+            const filteredFiles = files.filter(file => file.endsWith('.js') || file.endsWith('.json'));
+            console.log(`Archivos encontrados en ${dirName}: ${filteredFiles}`);
+            
+            filteredFiles.forEach((file) => {
+                const filePath = path.join(dirPath, file);
+                console.log(`Eliminando caché para: ${filePath}`);
+                delete require.cache[require.resolve(filePath)];
+            });
+            
+            return filteredFiles.map(file => path.join(dirPath, file));
+        } catch (error) {
+            console.error(`Error cargando archivos de ${dirName}: ${error.message}`);
+            return [];
+        }
     }
 }
