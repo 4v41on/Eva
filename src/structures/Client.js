@@ -1,6 +1,6 @@
-
 const { Client, Collection, GatewayIntentBits, Partials, ActivityType, PresenceUpdateStatus } = require('discord.js');
 const BotUtils = require('./utils');
+const path = require('path'); // Asegúrate de importar path aquí
 
 module.exports = class extends Client {
     constructor(options = {
@@ -47,18 +47,22 @@ module.exports = class extends Client {
 
     async start() {
         console.log("🛫 Bot iniciando...");
-
-        await this.loadCommands();
-        await this.loadHandlers();
-        await this.loadEvents();
-        await this.loadSlashCommands();
-
+    
+        await this.loadCommands(); // Carga los comandos
+        await this.loadHandlers(); // Carga los handlers
+        await this.loadEvents(); // Carga los eventos
+        await this.loadSlashCommands(); // Carga los comandos de barra
+    
         console.log("Intentando iniciar sesión con el token");
-
-        this.login(process.env.BOT_TOKEN);
-
-        console.log(`Token check 🥇  `);
+    
+        try {
+            await this.login(process.env.BOT_TOKEN); // Inicia sesión con el token
+            console.log(`Token check 🥇`); // Log de éxito al iniciar sesión
+        } catch (error) {
+            console.error(`Error al intentar iniciar sesión: ${error.message}`);
+        }
     }
+    
 
     async loadCommands() {
         console.log(`(${process.env.PREFIX}) Cargando comandos`.yellow);
@@ -66,25 +70,22 @@ module.exports = class extends Client {
         this.slashArray = [];
 
         const RUTA_ARCHIVOS = await this.utils.loadFiles("/src/comandos");
-        console.log(`Archivos encontrados: ${RUTA_ARCHIVOS}`); // Añadir un log para verificar
+        console.log(`Archivos encontrados: ${RUTA_ARCHIVOS}`);
 
-        if (RUTA_ARCHIVOS.length) {
-            RUTA_ARCHIVOS.forEach((rutaArchivo) => {
-                try {
-                    console.log(`Cargando archivo: ${rutaArchivo}`);
-                    const COMANDO = require(rutaArchivo);
-                    const NOMBRE_COMANDO = rutaArchivo.split("\\").pop().split("/").pop().split(".")[0];
+        RUTA_ARCHIVOS.forEach((rutaArchivo) => {
+            try {
+                console.log(`Cargando archivo: ${rutaArchivo}`);
+                const COMANDO = require(rutaArchivo);
+                const NOMBRE_COMANDO = rutaArchivo.split(path.sep).pop().split(".")[0]; // Uso de path.sep para compatibilidad multiplataforma
+                COMANDO.NAME = NOMBRE_COMANDO;
 
-                    COMANDO.NAME = NOMBRE_COMANDO;
-
-                    if (NOMBRE_COMANDO) this.commands.set(NOMBRE_COMANDO, COMANDO);
-                } catch (e) {
-                    console.error(`ERROR AL CARGAR EL COMANDO ${rutaArchivo}`.bgRed);
-                    console.error(e);
-                    console.error(`Error stack: ${e.stack}`); // Añadir la pila de errores para más detalles
-                }
-            });
-        }
+                if (NOMBRE_COMANDO) this.commands.set(NOMBRE_COMANDO, COMANDO); // Guarda el comando en la colección
+            } catch (e) {
+                console.error(`ERROR AL CARGAR EL COMANDO ${rutaArchivo}`.bgRed);
+                console.error(e);
+                console.error(`Error stack: ${e.stack}`);
+            }
+        });
 
         console.log(`(${process.env.PREFIX}) ${this.commands.size} Comandos cargados`.green);
     }
@@ -94,31 +95,29 @@ module.exports = class extends Client {
         this.slashCommands.clear();
         this.slashArray = [];
 
-        const RUTA_ARCHIVOS = await this.utils.loadFiles("/src/slashComands");
+        const RUTA_ARCHIVOS = await this.utils.loadFiles("/src/slashCommands");
+        console.log(`Archivos encontrados: ${RUTA_ARCHIVOS}`);
 
-        if (RUTA_ARCHIVOS.length) {
-            RUTA_ARCHIVOS.forEach((rutaArchivo) => {
-                try {
-                    console.log(`Cargando archivo: ${rutaArchivo}`);
-                    const COMANDO = require(rutaArchivo);
-                    const NOMBRE_COMANDO = rutaArchivo.split("\\").pop().split("/").pop().split(".")[0];
-                    COMANDO.CMD.name = NOMBRE_COMANDO;
+        RUTA_ARCHIVOS.forEach((rutaArchivo) => {
+            try {
+                console.log(`Cargando archivo: ${rutaArchivo}`);
+                const COMANDO = require(rutaArchivo);
+                const NOMBRE_COMANDO = rutaArchivo.split(path.sep).pop().split(".")[0];
+                COMANDO.CMD.name = NOMBRE_COMANDO;
 
-                    if (NOMBRE_COMANDO) this.slashCommands.set(NOMBRE_COMANDO, COMANDO);
-
-                    this.slashArray.push(COMANDO.CMD.toJSON());
-                } catch (e) {
-                    console.error(`ERROR AL CARGAR EL archivo ${rutaArchivo}`.bgRed);
-                    console.error(e);
-                    console.error(`Error stack: ${e.stack}`); // Añadir la pila de errores para más detalles
-                }
-            });
-        }
+                if (NOMBRE_COMANDO) this.slashCommands.set(NOMBRE_COMANDO, COMANDO); // Guarda el comando en la colección
+                this.slashArray.push(COMANDO.CMD.toJSON()); // Añade el comando a la lista de comandos de barra
+            } catch (e) {
+                console.error(`ERROR AL CARGAR EL archivo ${rutaArchivo}`.bgRed);
+                console.error(e);
+                console.error(`Error stack: ${e.stack}`);
+            }
+        });
 
         console.log(`(/) ${this.slashCommands.size} Comandos cargados`.green);
 
-        if (this?.application?.commands) {
-            this.application.commands.set(this.slashArray);
+        if (this.application?.commands) {
+            this.application.commands.set(this.slashArray); // Publica los comandos de barra
             console.log(`(/) ${this.slashCommands.size} Comandos Publicados!`.green);
         }
     }
@@ -127,44 +126,43 @@ module.exports = class extends Client {
         console.log(`(-) Cargando handlers`.yellow);
 
         const RUTA_ARCHIVOS = await this.utils.loadFiles("/src/handlers");
+        console.log(`Archivos encontrados: ${RUTA_ARCHIVOS}`);
 
-        if (RUTA_ARCHIVOS.length) {
-            RUTA_ARCHIVOS.forEach((rutaArchivo) => {
-                try {
-                    console.log(`Cargando handler: ${rutaArchivo}`);
-                    require(rutaArchivo)(this);
-                } catch (e) {
-                    console.error(`ERROR AL CARGAR EL HANDLER ${rutaArchivo}`.bgRed);
-                    console.error(e);
-                    console.error(`Error stack: ${e.stack}`); // Añadir la pila de errores para más detalles
-                }
-            });
-        }
+        RUTA_ARCHIVOS.forEach((rutaArchivo) => {
+            try {
+                console.log(`Cargando handler: ${rutaArchivo}`);
+                require(rutaArchivo)(this); // Carga y ejecuta cada handler
+            } catch (e) {
+                console.error(`ERROR AL CARGAR EL HANDLER ${rutaArchivo}`.bgRed);
+                console.error(e);
+                console.error(`Error stack: ${e.stack}`);
+            }
+        });
 
         console.log(`(-) ${RUTA_ARCHIVOS.length} Handlers cargados`.green);
     }
-
+    
     async loadEvents() {
         console.log(`(+) Cargando eventos`.yellow);
         this.removeAllListeners();
-
+    
         const RUTA_ARCHIVOS = await this.utils.loadFiles("/src/eventos");
-
-        if (RUTA_ARCHIVOS.length) {
-            RUTA_ARCHIVOS.forEach((rutaArchivo) => {
-                try {
-                    console.log(`Cargando evento: ${rutaArchivo}`);
-                    const EVENTO = require(rutaArchivo);
-                    const NOMBRE_EVENTO = rutaArchivo.split("\\").pop().split("/").pop().split(".")[0];
-                    this.on(NOMBRE_EVENTO, EVENTO.bind(null, this));
-                } catch (e) {
-                    console.error(`ERROR AL CARGAR EL EVENTO ${rutaArchivo}`.bgRed);
-                    console.error(e);
-                    console.error(`Error stack: ${e.stack}`); // Añadir la pila de errores para más detalles
-                }
-            });
-        }
-
+        console.log(`Archivos encontrados: ${RUTA_ARCHIVOS}`);
+    
+        RUTA_ARCHIVOS.forEach((rutaArchivo) => {
+            try {
+                console.log(`Cargando evento: ${rutaArchivo}`);
+                const EVENTO = require(rutaArchivo);
+                const NOMBRE_EVENTO = rutaArchivo.split(path.sep).pop().split(".")[0];
+                this.on(NOMBRE_EVENTO, EVENTO.bind(null, this));
+            } catch (e) {
+                console.error(`ERROR AL CARGAR EL EVENTO ${rutaArchivo}`.bgRed);
+                console.error(e);
+                console.error(`Error stack: ${e.stack}`);
+            }
+        });
+    
         console.log(`(+) ${RUTA_ARCHIVOS.length} Eventos cargados`.green);
     }
+    
 }
