@@ -1,5 +1,5 @@
 const { Client, Collection, GatewayIntentBits, Partials, ActivityType, PresenceUpdateStatus } = require('discord.js');
-const BotUtils = require('./utils');
+const BotUtils = require('./Utils');
 const path = require('path'); // Asegúrate de importar path aquí
 
 module.exports = class extends Client {

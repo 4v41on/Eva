@@ -71,5 +71,10 @@ console.log('📻 modulo de musica iniciado'.green)
       })
     });
     
+
+    client.distube.on("initQueue", (queue) => {
+      queue.autoplay = true
+  
+    })
     
 }
