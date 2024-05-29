@@ -1,11 +1,8 @@
-const { SlashCommandBuilder } = require('discord.js');
+
 
 module.exports = {
-  CMD: new SlashCommandBuilder()
-    .setName('skip')
-    .setDescription('saltar'),
-  name: "skip",
-  description: "skip song",
+
+  aliases: ["next","saltar"],
 
   async execute(client, message, args, prefix) {
 

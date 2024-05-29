@@ -1,7 +1,11 @@
-const { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle } = require('discord.js');
 
 module.exports = {
-  aliases: ["playlist", "list"],
+  CMD: new SlashCommandBuilder()
+    .setName('list')
+    .setDescription('queue songs'),
+  name: "list",
+  description: "queue song",
 
   async execute(client, message, args, prefix) {
     const queue = client.distube.getQueue(message);

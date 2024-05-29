@@ -1,11 +1,7 @@
 const { SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
-  CMD: new SlashCommandBuilder()
-    .setName('stop')
-    .setDescription('parar'),
-  name: "stop",
-  description: "stop song",
+  aliases: ["stp", "pause", "s"],
 
   async execute(client, message, args, prefix) {
 

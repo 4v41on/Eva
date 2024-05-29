@@ -1,10 +1,8 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
-
 module.exports = {
-    data: new SlashCommandBuilder()
-        .setName('ping')
-        .setDescription('Replies with Pong!'),
-    async execute(client, interaction) {
-        return interaction.reply(`PONG!🏓 el ping del bot es de \`${client.ws.ping}ms\``);
-    },
-};
+
+    aliases: ["lag"],
+    desc: "Sirve para ver ping",
+    execute(client, message, args, prefix, GUILD_DATA){
+        return message.reply(`PONG!🏓 \`${client.ws.ping}ms\``);
+    }
+}

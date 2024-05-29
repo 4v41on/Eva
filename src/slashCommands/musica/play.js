@@ -1,6 +1,11 @@
+const { SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
-  aliases: ["p", "r"],
+  CMD: new SlashCommandBuilder()
+    .setName('play')
+    .setDescription('darle play al bott'),
+  name: "play",
+  description: "Mira el ping del bot",
 
   async execute(client, message, args, prefix) {
     if (!args.length) return message.reply('❌ ** tienes que especificar el nombre de una cancion pete **');
