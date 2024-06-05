@@ -1,6 +1,6 @@
 const {DisTube}  = require ('distube');
-const ffmpegPath = require('ffmpeg-static');
-const { EmbedBuilder } = require('discord.js');
+const ffmpegPath = require('ffmpeg-static')
+const { EmbedBuilder,AttachmentBuilder } = require('discord.js');
 
 const {SpotifyPlugin} = require ('@distube/spotify');
 const {SoundCloudPlugin}= require ('@distube/soundcloud');
@@ -39,6 +39,8 @@ console.log('📻 modulo de musica iniciado'.green)
         ]
     });
 
+
+    const file = new AttachmentBuilder('./src/assets/crane.gif');
     // escuchamos eventos 
 
     client.distube.on("playSong", (queue, song) => {
@@ -47,6 +49,7 @@ console.log('📻 modulo de musica iniciado'.green)
         embeds: [new EmbedBuilder()
           .setTitle(`📻 [NowPlaying ]  -ϕϟ⨕ [\`${song.name}\`] - \`${song.formattedDuration}\` ⨀`)
           .setThumbnail(song.thumbnail)
+          .setImage('attachment://alien.png')
           .setURL(song.url)
           .setColor("#51ED14")
           .setFooter({text: `Δ ADD 4 ${song.user.tag} nice song! `, iconURL: song.user.displayAvatarURL({dynamic: true})})
@@ -62,6 +65,7 @@ console.log('📻 modulo de musica iniciado'.green)
 
         embeds: [new EmbedBuilder()
           .setTitle(`📀 [ADD]  -ϕϟ⨕ [\`${song.name}\`] - \`${song.formattedDuration}\` ⨀`)
+          .setImage('attachment://alien.png')
           .setThumbnail(song.thumbnail)
           .setURL(song.url)
           .setColor("#51ED14")

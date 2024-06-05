@@ -30,6 +30,7 @@
     "libsodium-wrappers": "^0.7.13",
     "mongodb": "^6.6.2",
     "mongoose": "^8.4.0",
+    "openai": "^4.48.1",
     "opusscript": "^0.0.8",
     "superagent": "^9.0.2"
   },
